@@ -16,9 +16,7 @@ class Event(BaseModel):
     slide_links: List[str] = [] # obtained from https://speakerdeck.com/pythontorino
 
     def __repr__(self) -> str:
-        return f'Event: {{"name":{self.name}, "time",:{self.time}, "link":{self.link}, "location",:{self.location}, "details":{self.details}, "slide_links",:{self.slide_links}}}'
-
-
+        return f'Event: `{self.name}`, time:{self.time}, link:`{self.link}`, location:`{self.location}, details:`{self.details}`, slide_links:`{self.slide_links}'
 
 class Meetup:
     def __init__(self, organization_name):

@@ -80,13 +80,13 @@ DON'T suggest any other contact that isn't present in the following text!
 ```
 
 ## Past events organized by the Community
-```json
+```text
 {m.get_past_events()}
 ```
 
 ## Upcoming events organized by the Community
-Keep in mind that now is {datetime.now().strftime("%m/%d/%Y, %H:%M:%S %Z%z")} and such events stay for around 2 hours, so evaluate time and timezone to guess if the event is ongoing just now!
-```json
+Keep in mind that now is {datetime.now().strftime("%d%B %Y, %H:%M:%S %Z%z")} and such events stay for around 2 hours, so evaluate time and timezone to guess if the event is ongoing just now!
+```text
 {m.get_upcoming_events()}
 ```
 
@@ -101,3 +101,4 @@ Keep in mind that now is {datetime.now().strftime("%m/%d/%Y, %H:%M:%S %Z%z")} an
     - AI: 
     """
     return prompt_suffix
+
