@@ -31,7 +31,6 @@ class Meetup:
         soup = BeautifulSoup(r.text, 'html.parser')
         
         event_divs = soup.select('div[id^="e-"], div[id^="ep-"]')
-        #div_elements = soup.find_all('div', class_='grid gap-2')
 
         events = []
         for event_div in event_divs:
@@ -44,40 +43,10 @@ class Meetup:
                 time=time,
                 link=link
             ))
-
         return events
 
-    
     def get_past_events(self):
         return self._request(self._past_events_url)
 
     def get_upcoming_events(self):
         return self._request(self._upcoming_events_url)
-
-        
-
-
-
-# r = httpx.('https://www.meetup.com/python-torino/events/?type=past')
-
-# if r.status_code == 200:
-#     soup = BeautifulSoup(r.text, 'html.parser')
-    
-#     div_elements = soup.find_all('div', class_='grid gap-2')
-
-#     for div in div_elements:
-#         # Extract time and title from each div
-#         time_element = div.find('time')  # Assuming time is wrapped in a 'time' tag
-#         title_element = div.find('span', class_='ds-font-title-3')  # Assuming title is inside a span tag with the specified class
-
-#         # Extract text content
-#         time = time_element.text.strip() if time_element else 'N/A'
-#         title = title_element.text.strip() if title_element else 'N/A'
-
-#         # Print or do something with the extracted information
-#         print(f'Time: {time}')
-#         print(f'Title: {title}')
-#         print('-' * 30)
-
-# else:
-#     print(f"Failed to retrieve the webpage. Status code: {r.status_code}")

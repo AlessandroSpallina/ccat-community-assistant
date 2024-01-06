@@ -45,13 +45,15 @@ def settings_model():
     return PluginSettings
 
 
-# @tool
-# def get_the_day(tool_input, cat):
-#     """Get the day of the week. Input is always None."""
+@tool
+def event_details(tool_input, cat):
+    """When user asks for an event of the Community. Input is always None
+Examples of questions you might face:
+- che mi sai dire dell'evento?
+- dettagli evento?
+- dimmi di più"""
 
-#     dt = datetime.now()
-
-#     return dt.strftime('%A')
+    return "BLABLABLABLA"
 
 
 @hook
@@ -64,8 +66,6 @@ def agent_prompt_prefix(prefix, cat):
 @hook
 def agent_prompt_suffix(prompt_suffix, cat):
     m = Meetup('python-torino')
-    past_events = m.get_past_events()
-    upcoming_events = m.get_upcoming_events()
 
     prompt_suffix = f""" 
 # Context
@@ -80,12 +80,13 @@ DON'T suggest any other contact that isn't present in the following text!
 ```
 
 ## Past events organized by the Community
+Keep in mind that now is {datetime.now().strftime("%A %d %B %Y, %H:%M:%S %Z%z")}, so evaluate time and timezone and don't be fooled with dates!
 ```text
 {m.get_past_events()}
 ```
 
 ## Upcoming events organized by the Community
-Keep in mind that now is {datetime.now().strftime("%d%B %Y, %H:%M:%S %Z%z")} and such events stay for around 2 hours, so evaluate time and timezone to guess if the event is ongoing just now!
+Keep in mind that now is {datetime.now().strftime("%A %d %B %Y, %H:%M:%S %Z%z")} and such events stay for around 2 hours, so evaluate time and timezone to guess if the event is ongoing just now!
 ```text
 {m.get_upcoming_events()}
 ```
@@ -102,3 +103,9 @@ Keep in mind that now is {datetime.now().strftime("%d%B %Y, %H:%M:%S %Z%z")} and
     """
     return prompt_suffix
 
+
+@hook
+def before_cat_recalls_procedural_memories(default_procedural_recall_config, cat):
+    default_procedural_recall_config["k"] = 1
+
+    return default_procedural_recall_config
