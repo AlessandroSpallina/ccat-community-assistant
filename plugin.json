@@ -1,10 +1,10 @@
 {
-    "name": "My plugin",
+    "name": "Community Assistant",
     "version": "0.0.1",
-    "description": "Description of my_plugin.",
-    "author_name": "Me",
-    "author_url": "https://mywebsite.me",
-    "plugin_url": "https://github.com/my_name/my_plugin",
-    "tags": "cat, template, example",
-    "thumb": "https://raw.githubusercontent.com/my_repo_path/my_plugin.png"
+    "description": "Use it to create an Assistant for communities organizing events on meetup.com and events video on Youtube and other stuff.",
+    "author_name": "Alessandro Spallina",
+    "author_url": "https://www.linkedin.com/in/alessandro-spallina/",
+    "plugin_url": "https://github.com/AlessandroSpallina/ccat-community-assistant",
+    "tags": "cat, community, assistant, meetup, youtube, peertube",
+    "thumb": "https://raw.githubusercontent.com/AlessandroSpallina/ccat-community-assistant/main/img/icon2.jpg"
 }
