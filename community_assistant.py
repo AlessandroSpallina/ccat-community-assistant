@@ -1,12 +1,12 @@
-from cat.mad_hatter.decorators import tool, hook, plugin
+from cat.mad_hatter.decorators import hook, plugin, tool
 from pydantic import BaseModel, Field
-from datetime import datetime, date
-from typing import List
+import pickle
+from datetime import datetime, timezone, timedelta
+from cat.looking_glass.cheshire_cat import CheshireCat
 from .meetup import Meetup
 
-
-m = Meetup('python-torino')
-
+settings = CheshireCat().mad_hatter.get_plugin().load_settings()
+meetup = Meetup(settings['meetup_organization_name'], settings['meetup_auth_cookie'])
 
 class PluginSettings(BaseModel):
     assistant_scope: str = Field(
@@ -41,20 +41,11 @@ You help people connect with the organization, entice them to attend events, and
         title="Meetup Organization Name",
         description="Check the meetup.com link, for example https://www.meetup.com/python-torino -> python-torino"
     )
-
-    procedural_k: int = Field(
-        default="1",
-        ge=0,
-        title="Procedural K",
-        description="Number of tools to recall from procedural memory after an user message"
-    )
-
-    procedural_threshold: float = Field(
-        default="0.83",
-        ge=0,
-        le=1,
-        title="Procedural Threshold",
-        description="Threshold for tools to recall from procedural memory after an user message"
+    meetup_auth_cookie: str = Field(
+        default="",
+        title="Meetup Auth Cookie",
+        description="Fuck antiscraping systems and fuck paid API D:",
+        extra={"type": "textArea"}
     )
 
 
@@ -63,26 +54,26 @@ def settings_model():
     return PluginSettings
 
 
-# @tool
-# def event_details(tool_input, cat):
-#     """When user asks for an event of the Community. Input is always None
-# Examples of questions you might face:
-# - che mi sai dire dell'evento?
-# - dettagli evento?
-# - dimmi di più"""
+@hook
+def before_agent_starts(agent_input, cat):
+    global meetup
+    settings = cat.mad_hatter.get_plugin().load_settings()
+    if meetup._auth_cookie != settings['meetup_auth_cookie'] or meetup._organization_name != settings['meetup_organization_name']:
+        meetup = Meetup(settings['meetup_organization_name'], settings['meetup_auth_cookie'])
 
-#     m.get_event_detail()
-#     return "BLABLABLABLA"
+    return agent_input
 
 
 @hook
 def agent_prompt_prefix(prefix, cat):
-    prefix = f"{cat.mad_hatter.get_plugin().load_settings()['assistant_scope']} You answer Human with a focus on the following context. NEVER answer questions not in topic with the context. ALWAYS answer in the same language the human is talking to you!"
+    prefix = f"{cat.mad_hatter.get_plugin().load_settings()['assistant_scope']} You answer Human using ONLY information in the context. NEVER answer questions not in topic with the context. ALWAYS answer in the same language the human is talking to you!"
     return prefix
 
 
 @hook
 def agent_prompt_suffix(prompt_suffix, cat):
+    current_time = datetime.now(timezone(timedelta(hours=1))).strftime("%a, %b %d, %Y, %I:%M %p CET")
+
     prompt_suffix = f""" 
 # Context
 
@@ -96,15 +87,15 @@ DON'T suggest any other contact that isn't present in the following text!
 ```
 
 ## Past events organized by the Community
-Keep in mind that now is {datetime.now().strftime("%A %d %B %Y, %H:%M:%S %Z%z")}, so evaluate time and timezone and don't be fooled with dates!
+Keep in mind that now is {current_time}, so evaluate time and timezone and don't be fooled with dates!
 ```text
-{m.past_events}
+{meetup.past_events}
 ```
 
 ## Upcoming events organized by the Community
-Keep in mind that now is {datetime.now().strftime("%A %d %B %Y, %H:%M:%S %Z%z")} and such events stay for around 2 hours, so evaluate time and timezone to guess if the event is ongoing just now!
+Keep in mind that now is {current_time} and such events stay for around 2 hours, so evaluate time and timezone to guess if the event is ongoing just now!
 ```text
-{m.upcoming_events}
+{meetup.upcoming_events}
 ```
 
 {{episodic_memory}}
@@ -120,9 +111,8 @@ Keep in mind that now is {datetime.now().strftime("%A %d %B %Y, %H:%M:%S %Z%z")}
     return prompt_suffix
 
 
-@hook
-def before_cat_recalls_procedural_memories(default_procedural_recall_config, cat):
-    default_procedural_recall_config["k"] = cat.mad_hatter.get_plugin().load_settings()['procedural_k']
-    default_procedural_recall_config["threshold"] = cat.mad_hatter.get_plugin().load_settings()['procedural_threshold']
-
-    return default_procedural_recall_config
+#@hook
+#def before_cat_recalls_procedural_memories(default_procedural_recall_config, cat):
+#    default_procedural_recall_config["k"] = cat.mad_hatter.get_plugin().load_settings()['procedural_k']
+#    default_procedural_recall_config["threshold"] = cat.mad_hatter.get_plugin().load_settings()['procedural_threshold']
+#    return default_procedural_recall_config
