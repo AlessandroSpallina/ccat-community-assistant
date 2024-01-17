@@ -1,12 +1,60 @@
 from cat.mad_hatter.decorators import hook, plugin, tool
 from pydantic import BaseModel, Field
-import pickle
 from datetime import datetime, timezone, timedelta
 from cat.looking_glass.cheshire_cat import CheshireCat
 from .meetup import Meetup
+import json
+
 
 settings = CheshireCat().mad_hatter.get_plugin().load_settings()
 meetup = Meetup(settings['meetup_organization_name'], settings['meetup_auth_cookie'])
+
+
+def ingest_events_details(cat):
+    events = meetup.past_events + meetup.upcoming_events
+
+    for event in events:
+        short_summary = cat.llm(f"Write a summary of the following event description, be sure to mention the speakers and the talks: ```{event}\n{event.details}```")
+        docs = cat.rabbit_hole.string_to_docs(
+            stray=cat,
+            file_bytes=short_summary,
+            chunk_size=len(short_summary),
+            source=event.link
+            )
+              
+        details_tmp = f'Follow the details of the event `{event.name}`: {event.details}'
+        docs_2 = cat.rabbit_hole.string_to_docs(
+            stray=cat,
+            file_bytes=details_tmp,
+            chunk_size=len(details_tmp),
+            source=event.link
+            )
+
+        docs = docs + docs_2
+
+        for doc in docs:
+            doc.metadata['event_name'] = event.name
+            doc.metadata['event_time'] = event.time
+            doc.metadata['event_location'] = f'{event.location_building} ({event.location_address})'
+
+        cat.rabbit_hole.store_documents(
+            stray=cat,
+            docs=docs,
+            source=event.link
+        )
+
+
+def set_documents_details_ingestion_option(cat, value: bool):
+    file_path = f'{cat.mad_hatter.get_plugin().path}settings.json'
+
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+
+    data['ingest_events_details'] = value
+
+    with open(file_path, 'w') as file:
+        json.dump(data, file, indent=4)
+
 
 class PluginSettings(BaseModel):
     assistant_scope: str = Field(
@@ -47,6 +95,10 @@ You help people connect with the organization, entice them to attend events, and
         description="Fuck antiscraping systems and fuck paid API D:",
         extra={"type": "textArea"}
     )
+    ingest_events_details: bool = Field(
+        default=True,
+        title="Ingest Events Details"
+    )
 
 
 @plugin
@@ -57,16 +109,24 @@ def settings_model():
 @hook
 def before_agent_starts(agent_input, cat):
     global meetup
+    global documents_details_ingested
     settings = cat.mad_hatter.get_plugin().load_settings()
+
     if meetup._auth_cookie != settings['meetup_auth_cookie'] or meetup._organization_name != settings['meetup_organization_name']:
         meetup = Meetup(settings['meetup_organization_name'], settings['meetup_auth_cookie'])
+        ingest_events_details(cat)
+        set_documents_details_ingestion_option(cat, False)
+
+    if settings['ingest_events_details']:
+        ingest_events_details(cat)
+        set_documents_details_ingestion_option(cat, False)
 
     return agent_input
 
 
 @hook
 def agent_prompt_prefix(prefix, cat):
-    prefix = f"{cat.mad_hatter.get_plugin().load_settings()['assistant_scope']} You answer Human using ONLY information in the context. NEVER answer questions not in topic with the context. ALWAYS answer in the same language the human is talking to you!"
+    prefix = f"{cat.mad_hatter.get_plugin().load_settings()['assistant_scope']} You answer Human using ONLY information in the context, if you are unsure ask to provide more context. NEVER answer questions not in topic with the context. ALWAYS answer in the same language the human is talking to you!"
     return prefix
 
 
@@ -111,8 +171,8 @@ Keep in mind that now is {current_time} and such events stay for around 2 hours,
     return prompt_suffix
 
 
-#@hook
-#def before_cat_recalls_procedural_memories(default_procedural_recall_config, cat):
-#    default_procedural_recall_config["k"] = cat.mad_hatter.get_plugin().load_settings()['procedural_k']
-#    default_procedural_recall_config["threshold"] = cat.mad_hatter.get_plugin().load_settings()['procedural_threshold']
-#    return default_procedural_recall_config
+@hook
+def before_cat_recalls_declarative_memories(declarative_recall_config, cat):
+    declarative_recall_config["k"] = 5
+
+    return declarative_recall_config

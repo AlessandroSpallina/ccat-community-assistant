@@ -61,12 +61,10 @@ class Meetup:
             time = event_div.find('time').text.strip()
             title = event_div.find('span', class_='ds-font-title-3').text.strip()
             link = event_div.find('a')['href']
-            #location_building = event_div.find('div', class_='flex items-start space-x-1.5').find('span', class_='text-gray6').text.strip()
             event = Event(
                 name=title,
                 time=time,
                 link=link,
-                #location_building= location_building if 'event has passed' not in location_building else 'N/A'
             )
             events.append(self._scrape_event(event))
 
@@ -76,7 +74,6 @@ class Meetup:
         text = self._request(event.link)
         soup = BeautifulSoup(text, 'html.parser')
         
-        #location_div = soup.find('div', class_='bg-white px-5 pb-3 pt-6 sm:pb-4.5 lg:py-5')
         divs = soup.find_all('script', {'type': 'application/ld+json'})
         for div in divs:
             if json.loads(div.string).get('location') != None:
@@ -84,22 +81,7 @@ class Meetup:
                 location = data.get('location', {})
                 event.location_address = location.get('address', {}).get('streetAddress', 'N/A')
                 event.location_building = location.get('name', 'N/A')
-
-
- #       location_div = soup.find('script', {'type': 'application/ld+json'})
- #       if location_div:
- #           data = json.loads(location_div.string)
- #           location = data.get('location', {})
- #           event.location_address = location.get('address', {}).get('streetAddress', 'N/A')
- #           event.location_building = location.get('name', 'N/A')
-
-        # event.location_address = location_div.find('div', class_='text-gray6').text.strip()
-        # event.location_building = location_div.find('a').text.strip()
-        #event.location_google_maps = location_div.find('a')['href']
-        
-        # location_address = soup.find('div', class_='bg-white px-5 pb-3 pt-6 sm:pb-4.5 lg:py-5 lg:rounded-t-2xl').find('div', class_='text-gray6').text.strip()
-        # location_building = soup.find('div', class_='bg-white px-5 pb-3 pt-6 sm:pb-4.5 lg:py-5 lg:rounded-t-2xl').find('a').text.strip()
-        # location_maps = soup.find('div', class_='bg-white px-5 pb-3 pt-6 sm:pb-4.5 lg:py-5 lg:rounded-t-2xl').find('a')['href']
+                break
 
         event.details = soup.find('div', id='event-details').find('div', class_='break-words').text.strip()
 

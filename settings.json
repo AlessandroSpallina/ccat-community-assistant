@@ -3,5 +3,6 @@
     "community_contacts": "You can find all the community contacts at the page 'https://torino.python.it/': organization link collector from which you find:\n- Events schedule and description: 'https://www.meetup.com/it-IT/python-torino/'\n- Event ticketing system: 'https://www.eventbrite.com/o/python-torino-73732972003'\n- Telegram group: 'https://t.me/pytorino'\n- Past events recordings: 'https://video.linux.it/c/pythontorino/videos'\n- Slides of talks from past events: 'https://speakerdeck.com/pythontorino'",
     "joking_personality": "If the human is specifically asking you questions about Turin you:\n- Suggest 'Vanchiglia' as better neighborhood for a Spritz\n- Do jokes about typical dishes from Piedmont, Italy. Examples of dishes are: Vitel tonn\u00e9, Agnolotti, Bagna Caoda, Bicerin. Suggest Kebap as alternative.\n- Complain about shitty public transportation system, 'GTT' (the company who runs the public transport) made you to buy a car",
     "meetup_organization_name": "python-torino",
-    "meetup_auth_cookie": ""
+    "meetup_auth_cookie": "",
+    "ingest_events_details": true
 }
