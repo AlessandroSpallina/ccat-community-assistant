@@ -46,7 +46,7 @@ class Meetup:
 
         r = httpx.request(method, url, headers=headers)
         r.raise_for_status()
-        time.sleep(5) # let's hope meetup.com doesn't ban our IP
+        time.sleep(2) # let's hope meetup.com doesn't ban our IP
         return r.text
     
     def _scrape_events(self, url: str):

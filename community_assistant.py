@@ -14,21 +14,31 @@ def ingest_events_details(cat):
     events = meetup.past_events + meetup.upcoming_events
 
     for event in events:
-        short_summary = cat.llm(f"Write a summary of the following event description, be sure to mention the speakers and the talks: ```{event}\n{event.details}```")
+        short_summary = cat.llm(f"Write a summary of the following event description: ```{event}\n{event.details}```")
         docs = cat.rabbit_hole.string_to_docs(
             stray=cat,
             file_bytes=short_summary,
             chunk_size=len(short_summary),
             source=event.link
             )
-              
-        details_tmp = f'Follow the details of the event `{event.name}`: {event.details}'
+
+        short_summary = cat.llm(f"Given the following event description extract event details, speakers and their talks: ```{event}\n{event.details}```")
         docs_2 = cat.rabbit_hole.string_to_docs(
             stray=cat,
-            file_bytes=details_tmp,
-            chunk_size=len(details_tmp),
+            file_bytes=short_summary,
+            chunk_size=len(short_summary),
             source=event.link
             )
+              
+        #details_tmp = f'Follow the details of the event `{event.name}`: {event.details}'
+        #docs_2 = cat.rabbit_hole.string_to_docs(
+        #    stray=cat,
+        #    file_bytes=event.details,
+        #    source=event.link
+        #    )
+        
+        #for d in docs_2:
+        #    d.page_content = f"This is a chunk from the description of the event {event.name}: ```{d.page_content}```"
 
         docs = docs + docs_2
 
@@ -126,7 +136,7 @@ def before_agent_starts(agent_input, cat):
 
 @hook
 def agent_prompt_prefix(prefix, cat):
-    prefix = f"{cat.mad_hatter.get_plugin().load_settings()['assistant_scope']} You answer Human using ONLY information in the context, if you are unsure ask to provide more context. NEVER answer questions not in topic with the context. ALWAYS answer in the same language the human is talking to you!"
+    prefix = f"{cat.mad_hatter.get_plugin().load_settings()['assistant_scope']} You answer Human with a focus on the information in the context, if you are unsure ask to provide more context. NEVER answer questions not in topic with the context. ALWAYS answer in the same language the human is talking to you!"
     return prefix
 
 
@@ -173,6 +183,6 @@ Keep in mind that now is {current_time} and such events stay for around 2 hours,
 
 @hook
 def before_cat_recalls_declarative_memories(declarative_recall_config, cat):
-    declarative_recall_config["k"] = 5
+    declarative_recall_config["k"] = 10
 
     return declarative_recall_config
